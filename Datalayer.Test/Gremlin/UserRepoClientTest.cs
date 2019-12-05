@@ -21,7 +21,7 @@ namespace Datalayer.Test.Gremlin
 		public async Task UserRepoCreateTest()
 		{
 
-			UserVertex user = new UserVertex()
+			User user = new User()
 			{
 				FirstName = "Aaron",
 				LastName = "Aardvark",

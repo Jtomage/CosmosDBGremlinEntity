@@ -5,21 +5,12 @@ using Datalayer.Templates;
 using Datalayer.Structures;
 using System.Threading.Tasks;
 using Gremlin.Net.Driver;
-using Gremlin.Net.Driver.Exceptions;
-using Gremlin.Net.Structure.IO.GraphSON;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Datalayer.Gremlin
 {
-	public class UserRepository : RespositoryBase, IUserRepository
+	public class UserRepository : RepositoryBase, IUserRepository
 	{
-		public UserRepository(GremlinClientFactory factory)
-			: base(factory)
-		{
-		}
-
-		public Task<UserVertex> CreateUser(UserVertex user)
+		public Task<User> CreateUser(User user)
 		{
 			//Build the query since cosmos db does NOT support the fluent api https://github.com/Azure/azure-cosmos-dotnet-v2/issues/439
 			StringBuilder sb = new StringBuilder("g");
@@ -40,17 +31,13 @@ namespace Datalayer.Gremlin
 				{ "createdDate", DateTime.UtcNow }
 			};
 
-			using (GremlinClient gremlinClient = factory.GetClient())
-			{
-				user = SubmitAsync<UserVertex>(gremlinClient, query, arguments).Result;
-			}
+			var result = SubmitSingleAsync<User>(query, arguments);    //setting to variable for debugging
+			return result;
+		}
 
-			return Task.FromResult(user);
-		} 
-
-		public Task DeleteUser(UserVertex user)
+		public Task DeleteUser(User user)
 		{
-			if (String.IsNullOrWhiteSpace(user.Id)|| user.Id == Guid.Empty.ToString())
+			if (String.IsNullOrWhiteSpace(user.Id) || user.Id == Guid.Empty.ToString())
 				throw new ArgumentNullException("user.id");
 
 			string query = "g.V().has('User', 'id', id).drop()";
@@ -59,15 +46,11 @@ namespace Datalayer.Gremlin
 			{
 				{ "id", user.Id }
 			};
-			using (GremlinClient client = factory.GetClient())
-			{
-				//var resultSet = ExecuteQuery(client, query, values);
-				SubmitAsync<UserVertex>(client, query, args);
-			}
-			return Task.CompletedTask;
+
+			return SubmitNoResponseAsync(query, args);
 		}
 
-		public Task<UserVertex> GetById(string id)
+		public Task<User> GetById(string id)
 		{
 			if (String.IsNullOrWhiteSpace(id) || id == Guid.Empty.ToString())
 				throw new ArgumentNullException("id");
@@ -77,19 +60,18 @@ namespace Datalayer.Gremlin
 			{
 				{ "id", id }
 			};
-			using (GremlinClient client = factory.GetClient())
-			{
-				var resultSet = ExecuteQuery(client, query, arguments);
-			}
-			throw new NotImplementedException();
+
+			var result = SubmitSingleAsync<User>(query, arguments);
+			return result;
+
 		}
 
-		public Task<UserVertex> UpdateUser(UserVertex user)
+		public Task<User> UpdateUser(User user)
 		{
 			if (user == null || user.Id == Guid.Empty.ToString())
 				throw new ArgumentNullException("user");
 			StringBuilder sb = new StringBuilder("g.V()");
-			sb.Append(".has('User', 'id', id");
+			sb.Append(".has('User', 'id', id)");
 			sb.Append(".property('FirstName', firstName)");
 			sb.Append(".property('LastName', lastName)");
 			sb.Append(".property('SecurityStamp', securityStamp)");
@@ -106,13 +88,8 @@ namespace Datalayer.Gremlin
 				{ "createdDate", DateTime.UtcNow }
 			};
 
-			using (GremlinClient client = factory.GetClient())
-			{
-				var resultSet = ExecuteQuery(client, query, arguments);
-			}
-
-			throw new NotImplementedException();
+			var result = SubmitSingleAsync<User>(query, arguments);     //setting variable for debugging purpose
+			return result;
 		}
-
 	}
 }

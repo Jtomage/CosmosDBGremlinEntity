@@ -21,29 +21,36 @@ namespace DatalayerConsole.Test
 				.AddJsonFile("appsettings.json", false)
 				.Build();
 
-			IConfigurationSection cosmosDbconfig = configuration.GetSection("CosmosDBConfig");
+			//Load the gremlin config
+			CosmosDBConfig config = new CosmosDBConfig();
+			configuration.GetSection("CosmosDBConfig").Bind(config);
+			new GremlinClientFactory(config);
 
-			CosmosDBConfig config = new CosmosDBConfig()
-			{
-				HostName = cosmosDbconfig["HostName"],
-				Port = Convert.ToInt32(cosmosDbconfig["Port"]),
-				AuthorityKey = cosmosDbconfig["AuthorityKey"],
-				DatabaseName = cosmosDbconfig["DatabaseName"],
-				CollectionName = cosmosDbconfig["CollectionName"]
-			};
-			GremlinClientFactory factory = new GremlinClientFactory(config);
+			//RunGremlinTestingRepository();
+			TestUserRepository();
+		}
 
-			UserVertex user = new UserVertex()
+		private static void TestUserRepository()
+		{
+			User user = new User()
 			{
 				FirstName = "Aaron",
 				LastName = "Aardvark",
 				SecurityStamp = "Stamp",
 				CreatedDate = DateTime.UtcNow
 			};
-		
-			UserRepository ur = new UserRepository(factory);
+
+			UserRepository ur = new UserRepository();
 			user = ur.CreateUser(user).Result;
 			ur.DeleteUser(user);
 		}
+
+		private static void RunGremlinTestingRepository()
+		{
+			GremlinTestingRepository repo = new GremlinTestingRepository();
+			//repo.MultipleResultsTest();
+			var result = repo.GremlinTest().Result;
+		}
+
 	}
 }

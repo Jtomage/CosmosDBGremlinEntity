@@ -129,7 +129,7 @@ namespace Datalayer.Gremlin
 								propObj = Activator.CreateInstance(pi.PropertyType);
 
 							object value = ReadValue(reader, propObj);    //read the value
-
+							
 							//set the property
 							if (value.GetType() == pi.PropertyType)
 								pi.SetValue(targetObject, value);

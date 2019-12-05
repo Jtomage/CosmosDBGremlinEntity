@@ -8,12 +8,14 @@ namespace Datalayer.Templates
 {
 	public interface IEmailRepository
 	{
-		Task<EmailVertex> CreateEmail(EmailVertex email);
+		Task<Email> CreateEmail(Email email);
 
-		Task<EmailVertex> GetById(string id);
+		Task<Email> GetById(string id);
 
-		Task<EmailVertex> UpdateEmail(EmailVertex email);
+		Task<Email> UpdateEmail(Email email);
 
-		Task<bool> DeleteUser(EmailVertex email);
+		Task DeleteEmail(Email email);
+
+		Task ChangeOwner(Email email, User user);
 	}
 }

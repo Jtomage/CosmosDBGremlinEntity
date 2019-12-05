@@ -8,13 +8,13 @@ namespace Datalayer.Templates
 {
 	public interface IUserRepository
 	{
-		Task<UserVertex> CreateUser(UserVertex user);
+		Task<User> CreateUser(User user);
 
-		Task<UserVertex> GetById(string id);
+		Task<User> GetById(string id);
 
-		Task<UserVertex> UpdateUser(UserVertex user);
+		Task<User> UpdateUser(User user);
 
-		Task DeleteUser(UserVertex user);
+		Task DeleteUser(User user);
 
 	}
 }
