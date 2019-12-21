@@ -1,34 +1,44 @@
 # CosmosDBGremlinEntity
-Prototyping the Gremlin API with Cosmos DB.
+Prototyping Azure features
 
 ## Introduction
-Prototyping how to use Cosmos DB graph capabilties the Gremlin API. As of right now the Cosmos DB does not implement the Gremlin Fluent API or have result to entity mapping. Therefore all gremlinqueries are done as strings and a custom JSONConvertor was created for mapping the query results to each entity to save on writing multiple similar redundant code. May do test to see if an attribute version has better performance.
-May need to build specific parsers for the results for complex queries.
+Prototyping a few of Azure features 
+1. Cosmos DB graph capabilties the Gremlin API. 
+2. Azure Storage, Blobs and possibly BlockBlobs
+
+## Synopsis 
+Currently there are 2 issues 
+
+1. Cosmos DB does not implement the Gremlin Fluent API
+
+There is nothing that can be done about this until Microsoft makes a change. All Gremlin queries are done as strings
+
+2. Database Results do not have a mapper to an entity / model / class
+
+Since not all the gremlin api has been implemented the automapping shown in some of the Gremlin API documents does not work. All results are returned as basically JSON. A custom JSONConvertor was created for mapping the query results to each entity. It uses reflection but it might be better to use an attribute version. Test will need to be done or wait until Cosmos DB makes the updates on their end. it should be noted that a custom mapper maybe needed for more complex queries.
 
 Currently using a console app used to call the data layer. Still working on getting the Test projectup and running
 
 # Getting started
-Create an appsettings.json file with an JSON object CosmosDBConfig with the same property names as the CosmosDBConfig class. 
+Create an appsettings.json file with 2 JSON objects CosmosDBConfig and StorageAccountConfig with the same property names as the CosmosDBConfig and StorageAccountConfig class. 
 
-## Changes
+## Updates
 
 Made the GremlinClient a static object wrapped in the GremlinClientFactory class to use just one GremlinClient object and to reuse that across your application because the client uses a connection pool so the same connection can be used again for different requests instead of having to create and tear down one connection for each request. 
 
+After finding the 2mb size limit for the Cosmos DB, switched over to Azure Storage Blobs. There is a 128 mb size limit for the blob. Based on the documentation it might be possible to upload more but no clue on how it possible. When trying upload a 250 mb file, it DID NOT throw a size limit exception but a Task was Cancelled, with no other information. Best guess it was due to timeout. If a block blob storage type is used it might be possible to upload TB worth, will need to test. 
+
 ## Future updates
 - [X] Add Edge Mapping
-- [ ] ~~Uploading photos as Vertices~~
-	- There is a 2mb size limit. Compression would need to be added making this more troublesome as a tractional database. Instead will try Azure Storage
-- [ ] Picture uploading / management with Azure storage blob
-	- started
+- [X] Gremlin Response Wrapper. For the other variables sent back like status code. Not sure if needed
+- [X] Picture uploading / management with Azure storage blob
+- [X] Adding label property for entities
+- [X] Adding type property for entities
 - [ ] Get Testing project running
 
 
 ## Possible updates
-- [X] Gremlin Response Wrapper. For the other variables sent back like status code
-	- After looking at more complex queries mapping in the results in the repositories would be better.
 - [ ] Test attribute model for performance
 - [ ] Adding Versioning to Entities
-	- Possible problems when needing to modify entities in the future
-- [X] Adding label property for entities
-- [X] Adding type property for entities
+	- To account for furture changes
 - [ ] Add a web api 
