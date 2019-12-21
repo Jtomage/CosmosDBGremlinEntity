@@ -26,8 +26,13 @@ namespace DatalayerConsole.Test
 			configuration.GetSection("CosmosDBConfig").Bind(config);
 			new GremlinClientFactory(config);
 
+			StorageAccountConfig saConfig = new StorageAccountConfig();
+			configuration.GetSection("StorageAccountConfig").Bind(saConfig);
+
 			//RunGremlinTestingRepository();
-			TestUserRepository();
+			//TestUserRepository();
+			RunStorageAccountUploadTest(saConfig);
+			//RunTestOfContainerCreation(saConfig);
 		}
 
 		private static void TestUserRepository()
@@ -50,6 +55,18 @@ namespace DatalayerConsole.Test
 			GremlinTestingRepository repo = new GremlinTestingRepository();
 			//repo.MultipleResultsTest();
 			var result = repo.GremlinTest().Result;
+		}
+
+		private static void RunStorageAccountUploadTest(StorageAccountConfig config)
+		{
+			PhotoRepository pr = new PhotoRepository(config.ConnectionString);
+			var result = pr.UploadPhoto(config.ContainerName, config.UploadPath).Result;
+		}
+
+		private static void RunTestOfContainerCreation(StorageAccountConfig config)
+		{
+			PhotoRepository pr = new PhotoRepository(config.ConnectionString);
+			pr.CreateContainer(config.ContainerName, config.UploadPath).Wait();
 		}
 
 	}

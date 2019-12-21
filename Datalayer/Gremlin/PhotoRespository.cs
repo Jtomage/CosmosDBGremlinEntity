@@ -1,49 +1,58 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using Datalayer.Structures;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace Datalayer.Gremlin
 {
+
+	/// <summary>
+	/// There is a SIZE Limit when upload to Azure storage General storage account type. Storage clients default to a 128 MB maximum single blob upload
+	/// https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-dotnet#create-a-container
+	/// https://github.com/Azure/azure-storage-net/issues/732
+	/// https://github.com/Azure/azure-sdk-for-net/issues/8941
+	/// https://docs.microsoft.com/en-us/azure/storage/blobs/storage-upload-process-images?tabs=dotnet
+	/// </summary>
 	public class PhotoRepository : RepositoryBase
 	{
+		private readonly BlobServiceClient serviceClient;
 
-		private CloudStorageAccount storageAccount;
-
-		private CloudBlobContainer blobContainer;
-
-		public PhotoRepository(string storageConnectionString)
+		public PhotoRepository(string connectionString)
 		{
-			if (!CloudStorageAccount.TryParse(storageConnectionString, out storageAccount))
-				throw new ArgumentException("Connection string is invalid");
+			if (String.IsNullOrWhiteSpace(connectionString))
+				throw new ArgumentNullException("Connectiong String is null or empty");
+
+			serviceClient = new BlobServiceClient(connectionString);
 		}
 
-		public async Task InsertPhoto(Photo p, User u)
+		public async Task CreateContainer(string containerName, string localPath)
 		{
-			//Insert Photo information and connect it to user
-			await UploadPhoto(p);
-		}
-
-		private async Task UploadPhoto(Photo p)
-		{
-			try
+			BlobContainerClient containerClient = await serviceClient.CreateBlobContainerAsync(containerName);
+			string fileName = Path.GetFileName(localPath);
+			BlobClient blobClient = containerClient.GetBlobClient(fileName);
+			using (FileStream uploadFileStream = File.OpenRead(localPath))
 			{
-				CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-				CloudBlobContainer container = blobClient.GetContainerReference("photosdev");
-				CloudBlockBlob blockBlob = container.GetBlockBlobReference(p.Id);
-				using (MemoryStream stream = new MemoryStream(p.Image))
-				{
-					await blockBlob.UploadFromStreamAsync(stream);
-				}
-			}
-			catch (Exception)
-			{
-				throw;
+				var uploadInfo = await blobClient.UploadAsync(uploadFileStream);
 			}
 		}
+
+		public async Task<BlobContentInfo> UploadPhoto(string containerName, string localPath)
+		{
+			//https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-block-blobs--append-blobs--and-page-blobs
+			//Storage clients default to a 128 MB maximum single blob upload
+
+			BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
+			string fileName = "test1.jpg";
+			//Create the blob that uploading to
+			BlobClient blobClient = containerClient.GetBlobClient(fileName);
+
+			using (FileStream uploadFileStream = File.OpenRead(localPath))
+			{
+				var uploadInfo = await blobClient.UploadAsync(uploadFileStream);
+				return uploadInfo;
+			}
+		}
+
 	}
 }
