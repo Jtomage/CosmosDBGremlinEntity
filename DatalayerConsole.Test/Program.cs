@@ -31,8 +31,11 @@ namespace DatalayerConsole.Test
 
 			//RunGremlinTestingRepository();
 			//TestUserRepository();
-			RunStorageAccountUploadTest(saConfig);
+			//RunStorageAccountUploadTest(saConfig);
 			//RunTestOfContainerCreation(saConfig);
+			//DownloadFileFromContainer(saConfig);
+			TestPropertiesSerialization();
+			
 		}
 
 		private static void TestUserRepository()
@@ -48,6 +51,29 @@ namespace DatalayerConsole.Test
 			UserRepository ur = new UserRepository();
 			user = ur.CreateUser(user).Result;
 			ur.DeleteUser(user);
+		}
+
+		private static void TestPropertiesSerialization()
+		{
+			GremlinTestingRepository gtr = new GremlinTestingRepository();
+			gtr.ParseTest();
+
+			//UserProperties user = new UserProperties()
+			//{
+			//	Version = "1",
+			//	FirstName = "Baron",
+			//	LastName = "Bolt",
+			//	SecurityStamp = "Stamp",
+			//	CreatedDate = DateTime.UtcNow
+			//};
+			//Vertex<UserProperties> uv = new Vertex<UserProperties>()
+			//{
+			//	Label = "User",
+			//	Properties = user
+			//};
+
+			//UserRepository ur = new UserRepository();
+			//uv = ur.CreateUser(uv).Result;
 		}
 
 		private static void RunGremlinTestingRepository()
@@ -67,6 +93,12 @@ namespace DatalayerConsole.Test
 		{
 			PhotoRepository pr = new PhotoRepository(config.ConnectionString);
 			pr.CreateContainer(config.ContainerName, config.UploadPath).Wait();
+		}
+
+		private static void DownloadFileFromContainer(StorageAccountConfig config)
+		{
+			PhotoRepository pr = new PhotoRepository(config.ConnectionString);
+			pr.DownloadPhoto(config.ContainerName, config.UploadPath).Wait();
 		}
 
 	}

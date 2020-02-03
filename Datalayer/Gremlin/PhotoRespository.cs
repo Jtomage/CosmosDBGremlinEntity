@@ -54,5 +54,19 @@ namespace Datalayer.Gremlin
 			}
 		}
 
+		public async Task DownloadPhoto(string containerName, string localPath)
+		{
+			BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
+			BlobClient blobClient = containerClient.GetBlobClient("test1.jpg");
+			BlobDownloadInfo download = await blobClient.DownloadAsync();
+
+			string path = Path.Combine(Path.GetDirectoryName(localPath), "download.jpg");
+
+			using (FileStream fs = File.OpenWrite(path))
+			{
+				await download.Content.CopyToAsync(fs);
+			}
+		}
+
 	}
 }

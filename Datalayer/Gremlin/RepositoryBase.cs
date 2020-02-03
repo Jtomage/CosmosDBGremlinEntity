@@ -90,5 +90,27 @@ namespace Datalayer.Gremlin
 				throw;
 			}
 		}
+
+		protected async Task<string> ExecuteQueryAndSerialize(string query, Dictionary<string, object> arguments = null)
+		{
+			try
+			{
+				using (GremlinClient gremlinClient = GremlinClientFactory.GetClient())
+				{
+					var resultset = await gremlinClient.SubmitAsync<dynamic>(query, arguments);
+					if (resultset.Count > 0)
+					{
+						string temp = JsonConvert.SerializeObject(resultset);
+						return temp;
+					}
+					else
+						return null;
+				}
+			}
+			catch (ResponseException)
+			{
+				throw;
+			}
+		}
 	}
 }
